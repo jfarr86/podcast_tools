@@ -43,7 +43,7 @@ def download_podcast_episodes(rss_feed_url, folder_path):
 if __name__ == "__main__":
     RSS_FEED_URL = "https://www.buzzsprout.com/1228499.rss"
     current_script_dir = os.path.dirname(os.path.abspath(__file__))
-    FOLDER_PATH = os.path.abspath(os.path.join(current_script_dir, os.pardir, 'podcast_episodes'))
+    FOLDER_PATH = os.path.abspath(os.path.join(current_script_dir, os.pardir, 'podcast_episodes/mp3'))
     
     print(f"Script is running from: {current_script_dir}")
     print(f"Saving episodes to: {FOLDER_PATH}")

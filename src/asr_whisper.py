@@ -1,7 +1,8 @@
 import os
 from pydub import AudioSegment
-from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline, WhisperTimeStampLogitsProcessor, GenerationConfig
+from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 import torch
+import traceback
 
 def list_all_files_in_directory(directory_path):
     files = []
@@ -38,36 +39,47 @@ def convert_mp3_to_wav(mp3_file_path, wav_file_path, sample_rate=16000):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def setup_whisper_model(model_id = "openai/whisper-large-v3"):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+def setup_whisper_model(model_id="openai/whisper-large-v3"):
+    try:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
 
-    model_id = model_id
+        print(f"Device: {device}")
+        print(f"Model ID: {model_id}")
+        print(f"Using torch_dtype: {torch_dtype}")
 
-    model = AutoModelForSpeechSeq2Seq.from_pretrained(
-        model_id, 
-        torch_dtype=torch_dtype, 
-        low_cpu_mem_usage=True, 
-        use_safetensors=True, 
-        use_flash_attention_2=True,
+        model = AutoModelForSpeechSeq2Seq.from_pretrained(
+            model_id, 
+            torch_dtype=torch_dtype, 
+            low_cpu_mem_usage=True, 
+            use_safetensors=True, 
         )
-    model.to(device)
+        model.to(device)
+        print("Model loaded and moved to device successfully.")
 
-    processor = AutoProcessor.from_pretrained(model_id)
+        processor = AutoProcessor.from_pretrained(model_id)
+        print("Processor loaded successfully.")
 
-    pipe = pipeline(
-        "automatic-speech-recognition",
-        model=model,
-        tokenizer=processor.tokenizer,
-        feature_extractor=processor.feature_extractor,
-        max_new_tokens=128,
-        chunk_length_s=30,
-        batch_size=16,
-        return_timestamps=True,
-        torch_dtype=torch_dtype,
-        device=device,
-    )
-    return pipe
+        pipe = pipeline(
+            "automatic-speech-recognition",
+            model=model,
+            tokenizer=processor.tokenizer,
+            feature_extractor=processor.feature_extractor,
+            max_new_tokens=128,
+            chunk_length_s=30,
+            batch_size=16,
+            return_timestamps=True,
+            torch_dtype=torch_dtype,
+            device=device,
+        )
+        print("Pipeline created successfully.")
+        return pipe
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        print(f"Error type: {type(e).__name__}")
+        print(f"Traceback: {traceback.format_exc()}")
+    return None
 
 
 # # Transcribe a local MP3 file in chunks
